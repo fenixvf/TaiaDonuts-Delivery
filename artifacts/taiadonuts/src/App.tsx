@@ -214,7 +214,7 @@ export default function App() {
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
             className="text-5xl md:text-6xl font-black text-foreground tracking-tight mb-4"
           >
-            TaiaDonut
+            Taia Donuts
           </motion.h1>
 
           <motion.p
@@ -561,7 +561,7 @@ export default function App() {
                 <img src={logoImg} alt="TaiaDonut Logo" className="w-full h-full object-cover" />
               </div>
               <div>
-                <h3 className="text-xl font-black">TaiaDonut</h3>
+                <h3 className="text-xl font-black">Taia Donuts</h3>
                 <p className="text-white/50 text-sm font-medium">Montanha/ES • Entrega na região</p>
               </div>
             </motion.div>
@@ -600,7 +600,7 @@ export default function App() {
             viewport={viewportOpts}
             className="mt-10 pt-8 border-t border-white/10 text-center text-white/30 text-xs font-medium"
           >
-            © 2026 TaiaDonut • Montanha/ES
+            © 2026 Taia Donuts • Montanha/ES
           </motion.div>
         </div>
       </footer>
