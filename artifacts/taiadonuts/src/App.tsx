@@ -1,6 +1,6 @@
 import React from "react";
-import { motion } from "framer-motion";
-import { MessageCircle, MapPin, Clock, Heart, ChevronRight, Star } from "lucide-react";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { MessageCircle, MapPin, Clock, Heart, ChevronRight, Star, Sparkles, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import logoImg from "@assets/Screenshot_2026-05-24-16-32-02-893_com.instagram.android-edit_1779651416020.png";
@@ -15,417 +15,593 @@ import flavorNutellaImg from "@assets/5_20260524_170249_0004_1779653236348.png";
 
 const WHATSAPP_NUMBER = "5527996340288";
 
-const generateWhatsAppLink = (message: string) => {
-  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
-};
+const generateWhatsAppLink = (message: string) =>
+  `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 
 const MAIN_CTA_MESSAGE = "Olá! Quero fazer um pedido na TaiaDonut!";
 
-const fadeIn = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+const fadeUp = {
+  hidden: { opacity: 0, y: 40 },
+  visible: (delay = 0) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1], delay },
+  }),
 };
 
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  visible: {
+const fadeLeft = {
+  hidden: { opacity: 0, x: -50 },
+  visible: (delay = 0) => ({
     opacity: 1,
-    transition: {
-      staggerChildren: 0.2
-    }
-  }
+    x: 0,
+    transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1], delay },
+  }),
 };
+
+const fadeRight = {
+  hidden: { opacity: 0, x: 50 },
+  visible: (delay = 0) => ({
+    opacity: 1,
+    x: 0,
+    transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1], delay },
+  }),
+};
+
+const scaleIn = {
+  hidden: { opacity: 0, scale: 0.85 },
+  visible: (delay = 0) => ({
+    opacity: 1,
+    scale: 1,
+    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1], delay },
+  }),
+};
+
+const viewportOpts = { once: true, margin: "-80px" };
+
+function SectionBadge({ children }: { children: React.ReactNode }) {
+  return (
+    <motion.div
+      variants={fadeUp}
+      custom={0}
+      initial="hidden"
+      whileInView="visible"
+      viewport={viewportOpts}
+      className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-1.5 rounded-full text-sm font-bold mb-4"
+    >
+      <Sparkles className="w-3.5 h-3.5" />
+      {children}
+    </motion.div>
+  );
+}
+
+interface ComboCardProps {
+  units: number;
+  price: string;
+  label: string;
+  highlight?: boolean;
+  orderMessage: string;
+  testId: string;
+  delay?: number;
+}
+
+function ComboCard({ units, price, label, highlight = false, orderMessage, testId, delay = 0 }: ComboCardProps) {
+  if (highlight) {
+    return (
+      <motion.div
+        variants={scaleIn}
+        custom={delay}
+        initial="hidden"
+        whileInView="visible"
+        viewport={viewportOpts}
+        whileHover={{ y: -6 }}
+        className="relative z-10"
+      >
+        <div className="absolute -top-5 left-1/2 -translate-x-1/2 z-20">
+          <motion.div
+            animate={{ scale: [1, 1.06, 1] }}
+            transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+            className="bg-accent text-foreground px-5 py-1.5 rounded-full text-sm font-black flex items-center gap-1.5 shadow-md whitespace-nowrap"
+          >
+            <Star className="w-3.5 h-3.5 fill-current" /> MAIS PEDIDO
+          </motion.div>
+        </div>
+        <div className="bg-primary rounded-[28px] p-1 shadow-2xl shadow-primary/30 h-full">
+          <div className="bg-white rounded-[22px] p-7 flex flex-col h-full text-center">
+            <div className="pt-4 mb-3">
+              <span className="text-xs font-bold text-primary uppercase tracking-widest">{label}</span>
+            </div>
+            <div className="text-5xl font-black text-foreground mb-1">
+              {units} <span className="text-xl font-bold text-foreground/50">un</span>
+            </div>
+            <div className="text-5xl font-black text-primary mb-8">
+              R$<span>{price}</span>
+            </div>
+            <div className="mt-auto">
+              <Button
+                className="w-full rounded-full font-bold bg-green-600 hover:bg-green-700 text-white h-12 text-base shadow-lg shadow-green-600/20"
+                onClick={() => window.open(generateWhatsAppLink(orderMessage), "_blank")}
+                data-testid={testId}
+              >
+                <MessageCircle className="w-4 h-4 mr-2" />
+                Pedir pelo WhatsApp
+              </Button>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div
+      variants={fadeUp}
+      custom={delay}
+      initial="hidden"
+      whileInView="visible"
+      viewport={viewportOpts}
+      whileHover={{ y: -4, boxShadow: "0 20px 40px rgba(0,0,0,0.10)" }}
+      className="bg-white rounded-[28px] p-7 flex flex-col border border-border/60 shadow-sm h-full text-center transition-shadow"
+    >
+      <div className="mb-3">
+        <span className="text-xs font-bold text-foreground/40 uppercase tracking-widest">{label}</span>
+      </div>
+      <div className="text-4xl font-black text-foreground mb-1">
+        {units} <span className="text-xl font-bold text-foreground/50">un</span>
+      </div>
+      <div className="text-4xl font-black text-primary mb-8">
+        R$<span>{price}</span>
+      </div>
+      <div className="mt-auto">
+        <Button
+          className="w-full rounded-full font-bold bg-green-600 hover:bg-green-700 text-white shadow-md shadow-green-600/20"
+          onClick={() => window.open(generateWhatsAppLink(orderMessage), "_blank")}
+          data-testid={testId}
+        >
+          <MessageCircle className="w-4 h-4 mr-2" />
+          Pedir pelo WhatsApp
+        </Button>
+      </div>
+    </motion.div>
+  );
+}
 
 export default function App() {
+  const { scrollY } = useScroll();
+  const logoY = useTransform(scrollY, [0, 400], [0, -40]);
+  const logoScale = useTransform(scrollY, [0, 300], [1, 0.9]);
+
+  const flavors = [
+    { name: "Leite Ninho", img: flavorLeitNinhoImg, bg: "from-amber-50 to-yellow-100" },
+    { name: "Brigadeiro", img: flavorBrigadeiroImg, bg: "from-amber-900/10 to-amber-800/20" },
+    { name: "Doce de Leite", img: flavorDoceLeiteImg, bg: "from-orange-100 to-amber-200" },
+    { name: "Maracujá", img: flavorMaracujaImg, bg: "from-yellow-100 to-orange-100" },
+    { name: "Coco", img: flavorCocoImg, bg: "from-stone-50 to-stone-100" },
+    { name: "Nutella", img: flavorNutellaImg, bg: "from-amber-800/10 to-stone-200" },
+  ];
+
   return (
     <div className="min-h-screen bg-background overflow-x-hidden font-sans">
-      {/* Header / Hero */}
-      <header className="relative pt-12 pb-24 px-4 overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-secondary/20 via-background to-background -z-10" />
-        
-        <div className="container max-w-4xl mx-auto flex flex-col items-center text-center">
-          <motion.div 
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 200, damping: 20 }}
+
+      {/* ── HERO ── */}
+      <header className="relative pt-16 pb-28 px-4 overflow-hidden">
+        {/* Decorative blobs */}
+        <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-12 -left-12 w-72 h-72 rounded-full bg-accent/15 blur-3xl pointer-events-none" />
+
+        <div className="container max-w-4xl mx-auto flex flex-col items-center text-center relative z-10">
+
+          {/* Logo */}
+          <motion.div
+            style={{ y: logoY, scale: logoScale }}
+            initial={{ scale: 0.7, opacity: 0, rotate: -8 }}
+            animate={{ scale: 1, opacity: 1, rotate: 0 }}
+            transition={{ type: "spring", stiffness: 180, damping: 18, delay: 0.1 }}
             className="mb-8"
           >
-            <div className="w-48 h-48 md:w-56 md:h-56 rounded-full overflow-hidden border-4 border-white shadow-xl mx-auto relative group">
-              <img 
-                src={logoImg} 
-                alt="TaiaDonut Logo" 
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-              />
-            </div>
+            <motion.div
+              animate={{ y: [0, -8, 0] }}
+              transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+              className="w-52 h-52 md:w-64 md:h-64 rounded-full overflow-hidden border-4 border-white shadow-2xl shadow-primary/20 mx-auto"
+            >
+              <img src={logoImg} alt="TaiaDonut Logo" className="w-full h-full object-cover" />
+            </motion.div>
           </motion.div>
 
-          <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-6">
-            <motion.h1 variants={fadeIn} className="text-4xl md:text-5xl font-black text-foreground tracking-tight">
-              TaiaDonut
-            </motion.h1>
-            
-            <motion.p variants={fadeIn} className="text-lg md:text-xl text-foreground/80 max-w-2xl mx-auto font-medium leading-relaxed">
-              Feitos com carinho, coberturas irresistíveis e aquele sabor que transforma qualquer momento em algo especial.
-            </motion.p>
+          {/* Heading */}
+          <motion.h1
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
+            className="text-5xl md:text-6xl font-black text-foreground tracking-tight mb-4"
+          >
+            TaiaDonut
+          </motion.h1>
 
-            <motion.div variants={fadeIn} className="flex flex-wrap justify-center gap-3 mt-6">
-              <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm text-sm font-bold text-foreground border border-border/50">
-                <MapPin className="w-4 h-4 text-primary" />
-                Montanha/ES • Entrega na região
-              </div>
-              <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full text-sm font-bold text-primary">
-                <Clock className="w-4 h-4" />
-                Produção diária
-              </div>
-              <div className="inline-flex items-center gap-2 bg-accent/20 px-4 py-2 rounded-full text-sm font-bold text-accent-foreground">
-                <Heart className="w-4 h-4 text-accent" />
-                Feitos com amor
-              </div>
-            </motion.div>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.45 }}
+            className="text-lg md:text-xl text-foreground/70 max-w-2xl mx-auto font-medium leading-relaxed mb-8"
+          >
+            Feitos com carinho, coberturas irresistíveis e aquele sabor que transforma qualquer momento em algo especial.
+          </motion.p>
 
-            <motion.div variants={fadeIn} className="pt-8">
-              <Button 
-                size="lg" 
-                className="bg-primary hover:bg-primary/90 text-white rounded-full px-8 h-14 text-lg font-bold shadow-lg shadow-primary/30 group"
-                onClick={() => window.open(generateWhatsAppLink(MAIN_CTA_MESSAGE), '_blank')}
+          {/* Badges */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.6 }}
+            className="flex flex-wrap justify-center gap-3 mb-10"
+          >
+            {[
+              { icon: <MapPin className="w-4 h-4 text-primary" />, label: "Montanha/ES • Entrega na região", cls: "bg-white border border-border/60 text-foreground" },
+              { icon: <Clock className="w-4 h-4" />, label: "Produção diária", cls: "bg-primary/10 text-primary" },
+              { icon: <Heart className="w-4 h-4 text-accent" />, label: "Feitos com amor", cls: "bg-accent/20 text-foreground" },
+            ].map((b, i) => (
+              <motion.div
+                key={b.label}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.65 + i * 0.1, type: "spring", stiffness: 200 }}
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold shadow-sm ${b.cls}`}
+              >
+                {b.icon}
+                {b.label}
+              </motion.div>
+            ))}
+          </motion.div>
+
+          {/* CTA */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.9, type: "spring", stiffness: 200, damping: 16 }}
+          >
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
+              <Button
+                size="lg"
+                className="bg-primary hover:bg-primary/90 text-white rounded-full px-10 h-14 text-lg font-black shadow-xl shadow-primary/30"
+                onClick={() => window.open(generateWhatsAppLink(MAIN_CTA_MESSAGE), "_blank")}
                 data-testid="button-hero-cta"
               >
-                <MessageCircle className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
+                <MessageCircle className="w-5 h-5 mr-2" />
                 Pedir Agora
+                <ChevronRight className="w-5 h-5 ml-1" />
               </Button>
             </motion.div>
           </motion.div>
         </div>
       </header>
 
-      {/* Irresistíveis Section */}
-      <section className="py-20 px-4 bg-white relative">
+      {/* ── WAVE DIVIDER ── */}
+      <div className="relative -mt-1 leading-none">
+        <svg viewBox="0 0 1440 60" className="w-full fill-white" preserveAspectRatio="none">
+          <path d="M0,30 C360,60 1080,0 1440,30 L1440,60 L0,60 Z" />
+        </svg>
+      </div>
+
+      {/* ── IRRESISTÍVEIS ── */}
+      <section className="py-20 px-4 bg-white relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-secondary/20 blur-3xl pointer-events-none" />
         <div className="container max-w-5xl mx-auto">
-          <motion.div 
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-            variants={fadeIn}
-            className="text-center mb-12"
-          >
-            <h2 className="text-3xl md:text-4xl font-black text-foreground mb-4">
+
+          <div className="text-center mb-14">
+            <SectionBadge>Mini Donuts Clássicos</SectionBadge>
+            <motion.h2
+              variants={fadeUp}
+              custom={0.1}
+              initial="hidden"
+              whileInView="visible"
+              viewport={viewportOpts}
+              className="text-3xl md:text-5xl font-black text-foreground mb-4"
+            >
               Mini Donuts <span className="text-primary">Irresistíveis</span>
-            </h2>
-            <p className="text-foreground/70 font-medium max-w-xl mx-auto">
+            </motion.h2>
+            <motion.p
+              variants={fadeUp}
+              custom={0.2}
+              initial="hidden"
+              whileInView="visible"
+              viewport={viewportOpts}
+              className="text-foreground/60 font-medium max-w-xl mx-auto text-lg"
+            >
               Nossa massa fofinha com coberturas clássicas que derretem na boca.
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Card 4 un */}
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
-              className="bg-background rounded-3xl p-6 flex flex-col h-full border border-border/50 shadow-sm hover:shadow-md transition-shadow"
-            >
-              <div className="mb-4">
-                <div className="text-sm font-bold text-foreground/50 uppercase tracking-wider mb-2">Perfeito pra matar a vontade</div>
-                <div className="text-3xl font-black text-foreground">4 <span className="text-lg text-foreground/70">unidades</span></div>
-              </div>
-              <div className="text-3xl font-black text-primary mb-6">R$ 12</div>
-              <div className="mt-auto pt-6">
-                <Button 
-                  className="w-full rounded-full font-bold bg-green-600 hover:bg-green-700 text-white"
-                  onClick={() => window.open(generateWhatsAppLink("Olá! Quero fazer um pedido na TaiaDonut: 1 caixa de Mini Donuts Irresistíveis com 4 unidades - R$12. Meu nome é: "), '_blank')}
-                  data-testid="button-order-irresistiveis-4"
-                >
-                  <MessageCircle className="w-4 h-4 mr-2" />
-                  Pedir pelo WhatsApp
-                </Button>
-              </div>
-            </motion.div>
-
-            {/* Card 8 un - HIGHLIGHT */}
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2 }}
-              className="bg-primary rounded-3xl p-1 flex flex-col h-full shadow-xl shadow-primary/20 transform md:-translate-y-4 relative"
-            >
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-accent text-foreground px-4 py-1 rounded-full text-sm font-black flex items-center gap-1 shadow-sm whitespace-nowrap">
-                <Star className="w-4 h-4 fill-current" /> MAIS PEDIDO
-              </div>
-              <div className="bg-white rounded-[20px] p-6 flex flex-col h-full">
-                <div className="mb-4 pt-4">
-                  <div className="text-sm font-bold text-primary uppercase tracking-wider mb-2">Melhor custo-benefício</div>
-                  <div className="text-4xl font-black text-foreground">8 <span className="text-lg text-foreground/70">unidades</span></div>
-                </div>
-                <div className="text-4xl font-black text-primary mb-6">R$ 20</div>
-                <div className="mt-auto pt-6">
-                  <Button 
-                    className="w-full rounded-full font-bold bg-green-600 hover:bg-green-700 text-white h-12 text-lg"
-                    onClick={() => window.open(generateWhatsAppLink("Olá! Quero fazer um pedido na TaiaDonut: 1 caixa de Mini Donuts Irresistíveis com 8 unidades - R$20. Meu nome é: "), '_blank')}
-                    data-testid="button-order-irresistiveis-8"
-                  >
-                    <MessageCircle className="w-5 h-5 mr-2" />
-                    Pedir pelo WhatsApp
-                  </Button>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Card 12 un */}
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.3 }}
-              className="bg-background rounded-3xl p-6 flex flex-col h-full border border-border/50 shadow-sm hover:shadow-md transition-shadow"
-            >
-              <div className="mb-4">
-                <div className="text-sm font-bold text-foreground/50 uppercase tracking-wider mb-2">Ideal pra compartilhar</div>
-                <div className="text-3xl font-black text-foreground">12 <span className="text-lg text-foreground/70">unidades</span></div>
-              </div>
-              <div className="text-3xl font-black text-primary mb-6">R$ 32</div>
-              <div className="mt-auto pt-6">
-                <Button 
-                  className="w-full rounded-full font-bold bg-green-600 hover:bg-green-700 text-white"
-                  onClick={() => window.open(generateWhatsAppLink("Olá! Quero fazer um pedido na TaiaDonut: 1 caixa de Mini Donuts Irresistíveis com 12 unidades - R$32. Meu nome é: "), '_blank')}
-                  data-testid="button-order-irresistiveis-12"
-                >
-                  <MessageCircle className="w-4 h-4 mr-2" />
-                  Pedir pelo WhatsApp
-                </Button>
-              </div>
-            </motion.div>
+            </motion.p>
           </div>
-        </div>
-      </section>
 
-      {/* Recheados Section */}
-      <section className="py-20 px-4 bg-secondary/10 relative">
-        <div className="container max-w-5xl mx-auto">
-          <motion.div 
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+            <ComboCard units={4} price="12" label="Perfeito pra matar a vontade" orderMessage="Olá! Quero fazer um pedido na TaiaDonut: 1 caixa de Mini Donuts Irresistíveis com 4 unidades - R$12. Meu nome é: " testId="button-order-irresistiveis-4" delay={0.1} />
+            <ComboCard units={8} price="20" label="Melhor custo-benefício" highlight orderMessage="Olá! Quero fazer um pedido na TaiaDonut: 1 caixa de Mini Donuts Irresistíveis com 8 unidades - R$20. Meu nome é: " testId="button-order-irresistiveis-8" delay={0.2} />
+            <ComboCard units={12} price="32" label="Ideal pra compartilhar" orderMessage="Olá! Quero fazer um pedido na TaiaDonut: 1 caixa de Mini Donuts Irresistíveis com 12 unidades - R$32. Meu nome é: " testId="button-order-irresistiveis-12" delay={0.3} />
+          </div>
+
+          {/* Info strip */}
+          <motion.div
+            variants={fadeUp}
+            custom={0.4}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-            variants={fadeIn}
-            className="text-center mb-12"
+            viewport={viewportOpts}
+            className="mt-10 bg-primary/5 border border-primary/15 rounded-2xl px-6 py-4 flex flex-wrap justify-center gap-6 text-sm font-bold text-foreground/60"
           >
-            <h2 className="text-3xl md:text-4xl font-black text-foreground mb-4">
-              Mini Donuts <span className="text-primary">Recheados que Viciam</span>
-            </h2>
-            <p className="text-foreground/70 font-medium max-w-xl mx-auto">
-              A explosão de sabor que você merece. Recheios generosos e cremosos.
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-            {/* Card 4 un */}
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
-              className="bg-white rounded-3xl p-6 flex flex-col h-full border border-border/50 shadow-sm hover:shadow-md transition-shadow"
-            >
-              <div className="mb-4">
-                <div className="text-sm font-bold text-foreground/50 uppercase tracking-wider mb-2">Perfeito pra experimentar</div>
-                <div className="text-3xl font-black text-foreground">4 <span className="text-lg text-foreground/70">unidades</span></div>
-              </div>
-              <div className="text-3xl font-black text-primary mb-6">R$ 16</div>
-              <div className="mt-auto pt-6">
-                <Button 
-                  className="w-full rounded-full font-bold bg-green-600 hover:bg-green-700 text-white"
-                  onClick={() => window.open(generateWhatsAppLink("Olá! Quero fazer um pedido na TaiaDonut: 1 caixa de Mini Donuts Recheados com 4 unidades - R$16. Meu nome é: "), '_blank')}
-                  data-testid="button-order-recheados-4"
-                >
-                  <MessageCircle className="w-4 h-4 mr-2" />
-                  Pedir pelo WhatsApp
-                </Button>
-              </div>
-            </motion.div>
-
-            {/* Card 8 un - HIGHLIGHT */}
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2 }}
-              className="bg-primary rounded-3xl p-1 flex flex-col h-full shadow-xl shadow-primary/20 transform md:-translate-y-4 relative"
-            >
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-accent text-foreground px-4 py-1 rounded-full text-sm font-black flex items-center gap-1 shadow-sm whitespace-nowrap">
-                <Star className="w-4 h-4 fill-current" /> MAIS PEDIDO
-              </div>
-              <div className="bg-white rounded-[20px] p-6 flex flex-col h-full">
-                <div className="mb-4 pt-4">
-                  <div className="text-sm font-bold text-primary uppercase tracking-wider mb-2">Melhor custo-benefício</div>
-                  <div className="text-4xl font-black text-foreground">8 <span className="text-lg text-foreground/70">unidades</span></div>
-                </div>
-                <div className="text-4xl font-black text-primary mb-6">R$ 28</div>
-                <div className="mt-auto pt-6">
-                  <Button 
-                    className="w-full rounded-full font-bold bg-green-600 hover:bg-green-700 text-white h-12 text-lg"
-                    onClick={() => window.open(generateWhatsAppLink("Olá! Quero fazer um pedido na TaiaDonut: 1 caixa de Mini Donuts Recheados com 8 unidades - R$28. Meu nome é: "), '_blank')}
-                    data-testid="button-order-recheados-8"
-                  >
-                    <MessageCircle className="w-5 h-5 mr-2" />
-                    Pedir pelo WhatsApp
-                  </Button>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Card 12 un */}
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.3 }}
-              className="bg-white rounded-3xl p-6 flex flex-col h-full border border-border/50 shadow-sm hover:shadow-md transition-shadow"
-            >
-              <div className="mb-4">
-                <div className="text-sm font-bold text-foreground/50 uppercase tracking-wider mb-2">Ideal pra dividir (ou não)</div>
-                <div className="text-3xl font-black text-foreground">12 <span className="text-lg text-foreground/70">unidades</span></div>
-              </div>
-              <div className="text-3xl font-black text-primary mb-6">R$ 42</div>
-              <div className="mt-auto pt-6">
-                <Button 
-                  className="w-full rounded-full font-bold bg-green-600 hover:bg-green-700 text-white"
-                  onClick={() => window.open(generateWhatsAppLink("Olá! Quero fazer um pedido na TaiaDonut: 1 caixa de Mini Donuts Recheados com 12 unidades - R$42. Meu nome é: "), '_blank')}
-                  data-testid="button-order-recheados-12"
-                >
-                  <MessageCircle className="w-4 h-4 mr-2" />
-                  Pedir pelo WhatsApp
-                </Button>
-              </div>
-            </motion.div>
-          </div>
-
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center"
-          >
-            <h3 className="text-2xl font-black text-foreground mb-2">6 Sabores Irresistíveis</h3>
-            <p className="text-foreground/60 font-medium mb-8">Escolha o seu favorito — ou peça um de cada!</p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
-              {[
-                { name: 'Leite Ninho', img: flavorLeitNinhoImg },
-                { name: 'Brigadeiro', img: flavorBrigadeiroImg },
-                { name: 'Doce de Leite', img: flavorDoceLeiteImg },
-                { name: 'Maracujá', img: flavorMaracujaImg },
-                { name: 'Coco', img: flavorCocoImg },
-                { name: 'Nutella', img: flavorNutellaImg },
-              ].map((sabor, i) => (
-                <motion.div
-                  key={sabor.name}
-                  initial={{ opacity: 0, y: 16 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.08 }}
-                  className="flex flex-col items-center gap-2 group"
-                  data-testid={`card-sabor-${sabor.name.toLowerCase().replace(/\s/g, '-')}`}
-                >
-                  <div className="w-full aspect-square rounded-2xl overflow-hidden bg-white shadow-md border border-border/40 group-hover:shadow-lg group-hover:-translate-y-1 transition-all duration-300">
-                    <img
-                      src={sabor.img}
-                      alt={sabor.name}
-                      className="w-full h-full object-contain p-1"
-                    />
-                  </div>
-                  <span className="text-sm font-bold text-foreground/80 text-center leading-tight">{sabor.name}</span>
-                </motion.div>
-              ))}
-            </div>
+            {["Produção diária", "Fresquinhos", "Feitos com amor", "Fornada limitada por dia"].map((t) => (
+              <span key={t} className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block" />
+                {t}
+              </span>
+            ))}
           </motion.div>
         </div>
       </section>
 
-      {/* Gallery Section */}
+      {/* ── WAVE DIVIDER ── */}
+      <div className="relative leading-none bg-white">
+        <svg viewBox="0 0 1440 60" className="w-full fill-[hsl(24,57%,94%)]" preserveAspectRatio="none">
+          <path d="M0,0 C360,60 1080,0 1440,60 L1440,60 L0,60 Z" />
+        </svg>
+      </div>
+
+      {/* ── RECHEADOS ── */}
+      <section className="py-20 px-4 bg-[hsl(24,57%,94%)] relative overflow-hidden">
+        <div className="absolute bottom-0 left-0 w-80 h-80 rounded-full bg-accent/20 blur-3xl pointer-events-none" />
+        <div className="container max-w-5xl mx-auto">
+
+          <div className="text-center mb-14">
+            <SectionBadge>Com recheio cremoso</SectionBadge>
+            <motion.h2
+              variants={fadeUp}
+              custom={0.1}
+              initial="hidden"
+              whileInView="visible"
+              viewport={viewportOpts}
+              className="text-3xl md:text-5xl font-black text-foreground mb-4"
+            >
+              Mini Donuts <span className="text-primary">Recheados que Viciam</span>
+            </motion.h2>
+            <motion.p
+              variants={fadeUp}
+              custom={0.2}
+              initial="hidden"
+              whileInView="visible"
+              viewport={viewportOpts}
+              className="text-foreground/60 font-medium max-w-xl mx-auto text-lg"
+            >
+              A explosão de sabor que você merece. Recheios generosos e cremosos que escorrem.
+            </motion.p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center mb-16">
+            <ComboCard units={4} price="16" label="Perfeito pra experimentar" orderMessage="Olá! Quero fazer um pedido na TaiaDonut: 1 caixa de Mini Donuts Recheados com 4 unidades - R$16. Meu nome é: " testId="button-order-recheados-4" delay={0.1} />
+            <ComboCard units={8} price="28" label="Melhor custo-benefício" highlight orderMessage="Olá! Quero fazer um pedido na TaiaDonut: 1 caixa de Mini Donuts Recheados com 8 unidades - R$28. Meu nome é: " testId="button-order-recheados-8" delay={0.2} />
+            <ComboCard units={12} price="42" label="Ideal pra dividir (ou não)" orderMessage="Olá! Quero fazer um pedido na TaiaDonut: 1 caixa de Mini Donuts Recheados com 12 unidades - R$42. Meu nome é: " testId="button-order-recheados-12" delay={0.3} />
+          </div>
+
+          {/* Flavors */}
+          <motion.div
+            variants={fadeUp}
+            custom={0}
+            initial="hidden"
+            whileInView="visible"
+            viewport={viewportOpts}
+            className="text-center mb-8"
+          >
+            <h3 className="text-2xl md:text-3xl font-black text-foreground mb-2">6 Sabores Irresistíveis</h3>
+            <p className="text-foreground/50 font-medium">Escolha o seu favorito — ou peça um de cada!</p>
+          </motion.div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+            {flavors.map((sabor, i) => (
+              <motion.div
+                key={sabor.name}
+                variants={scaleIn}
+                custom={i * 0.08}
+                initial="hidden"
+                whileInView="visible"
+                viewport={viewportOpts}
+                whileHover={{ y: -6, scale: 1.04 }}
+                className="flex flex-col items-center gap-2.5 group cursor-default"
+                data-testid={`card-sabor-${sabor.name.toLowerCase().replace(/\s/g, "-")}`}
+              >
+                <div className={`w-full aspect-square rounded-2xl overflow-hidden bg-gradient-to-br ${sabor.bg} shadow-md border border-white group-hover:shadow-xl transition-all duration-300`}>
+                  <img src={sabor.img} alt={sabor.name} className="w-full h-full object-contain p-1.5" />
+                </div>
+                <span className="text-sm font-black text-foreground/80 text-center leading-tight">{sabor.name}</span>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── WAVE DIVIDER ── */}
+      <div className="relative leading-none bg-[hsl(24,57%,94%)]">
+        <svg viewBox="0 0 1440 60" className="w-full fill-white" preserveAspectRatio="none">
+          <path d="M0,60 C360,0 1080,60 1440,0 L1440,60 L0,60 Z" />
+        </svg>
+      </div>
+
+      {/* ── GALLERY ── */}
       <section className="py-20 px-4 bg-white">
         <div className="container max-w-5xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              className="rounded-3xl overflow-hidden shadow-lg group relative aspect-square"
+
+          <div className="text-center mb-14">
+            <SectionBadge>Feitos na hora</SectionBadge>
+            <motion.h2
+              variants={fadeUp}
+              custom={0.1}
+              initial="hidden"
+              whileInView="visible"
+              viewport={viewportOpts}
+              className="text-3xl md:text-5xl font-black text-foreground"
             >
-              <img src={box8Img} alt="Caixa com 8 mini donuts" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-8">
-                <span className="text-white font-bold text-xl drop-shadow-md">Caixa com 8 unidades</span>
+              Fresquinhos e irresistíveis
+            </motion.h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+            <motion.div
+              variants={fadeLeft}
+              custom={0}
+              initial="hidden"
+              whileInView="visible"
+              viewport={viewportOpts}
+              whileHover={{ scale: 1.02 }}
+              className="rounded-3xl overflow-hidden shadow-xl group relative aspect-square"
+            >
+              <img src={box8Img} alt="Caixa com 8 mini donuts recheados" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent flex items-end p-8">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Package className="w-4 h-4 text-white/80" />
+                    <span className="text-white/80 text-sm font-bold">Mini Donuts Recheados</span>
+                  </div>
+                  <span className="text-white font-black text-2xl drop-shadow-md">Caixa com 8 unidades</span>
+                </div>
               </div>
             </motion.div>
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2 }}
-              className="rounded-3xl overflow-hidden shadow-lg group relative aspect-square md:translate-y-12"
+
+            <motion.div
+              variants={fadeRight}
+              custom={0.15}
+              initial="hidden"
+              whileInView="visible"
+              viewport={viewportOpts}
+              whileHover={{ scale: 1.02 }}
+              className="rounded-3xl overflow-hidden shadow-xl group relative aspect-square md:mt-12"
             >
-              <img src={box12Img} alt="Caixa com 12 mini donuts" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-8">
-                <span className="text-white font-bold text-xl drop-shadow-md">Caixa com 12 unidades</span>
+              <img src={box12Img} alt="Caixa com 12 mini donuts recheados" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent flex items-end p-8">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Package className="w-4 h-4 text-white/80" />
+                    <span className="text-white/80 text-sm font-bold">Mini Donuts Recheados</span>
+                  </div>
+                  <span className="text-white font-black text-2xl drop-shadow-md">Caixa com 12 unidades</span>
+                </div>
               </div>
             </motion.div>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-24 px-4 bg-primary text-primary-foreground relative overflow-hidden mt-12 md:mt-24">
-        <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] mix-blend-overlay"></div>
+      {/* ── CTA ── */}
+      <section className="relative py-28 px-4 overflow-hidden bg-primary mt-12">
+        {/* animated rings */}
+        {[0, 1, 2].map((i) => (
+          <motion.div
+            key={i}
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10 pointer-events-none"
+            style={{ width: 200 + i * 160, height: 200 + i * 160 }}
+            animate={{ scale: [1, 1.06, 1], opacity: [0.4, 0.15, 0.4] }}
+            transition={{ repeat: Infinity, duration: 3 + i, ease: "easeInOut", delay: i * 0.8 }}
+          />
+        ))}
+
         <div className="container max-w-3xl mx-auto text-center relative z-10">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+          <motion.div
+            variants={scaleIn}
+            custom={0}
+            initial="hidden"
+            whileInView="visible"
+            viewport={viewportOpts}
           >
-            <h2 className="text-4xl md:text-5xl font-black mb-6 drop-shadow-sm">SABORES QUE ACABAM RÁPIDO!</h2>
-            <p className="text-xl md:text-2xl mb-10 font-medium opacity-90">Garanta já o seu antes que acabem</p>
-            <Button 
-              size="lg" 
-              className="bg-white text-primary hover:bg-white/90 rounded-full px-10 h-16 text-xl font-black shadow-xl hover:-translate-y-1 transition-all"
-              onClick={() => window.open(generateWhatsAppLink(MAIN_CTA_MESSAGE), '_blank')}
-              data-testid="button-final-cta"
+            <motion.div
+              animate={{ rotate: [-2, 2, -2] }}
+              transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+              className="text-5xl mb-6 select-none"
             >
-              <MessageCircle className="w-6 h-6 mr-3 text-green-500" />
-              Quero meus Donuts!
-              <ChevronRight className="w-6 h-6 ml-2" />
-            </Button>
+              🍩
+            </motion.div>
+            <h2 className="text-4xl md:text-6xl font-black text-white mb-4 drop-shadow-sm leading-tight">
+              SABORES QUE<br />ACABAM RÁPIDO!
+            </h2>
+            <p className="text-xl md:text-2xl text-white/80 mb-10 font-medium">
+              Garanta já o seu antes que acabem
+            </p>
+
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
+              <Button
+                size="lg"
+                className="bg-white text-primary hover:bg-white/95 rounded-full px-12 h-16 text-xl font-black shadow-2xl"
+                onClick={() => window.open(generateWhatsAppLink(MAIN_CTA_MESSAGE), "_blank")}
+                data-testid="button-final-cta"
+              >
+                <MessageCircle className="w-6 h-6 mr-3 text-green-500" />
+                Quero meus Donuts!
+                <ChevronRight className="w-6 h-6 ml-2" />
+              </Button>
+            </motion.div>
+
+            <motion.p
+              variants={fadeUp}
+              custom={0.3}
+              initial="hidden"
+              whileInView="visible"
+              viewport={viewportOpts}
+              className="text-white/60 text-sm font-bold mt-6 uppercase tracking-widest"
+            >
+              Rápido • Fácil • Delicioso
+            </motion.p>
           </motion.div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-foreground text-white py-12 px-4">
-        <div className="container max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full overflow-hidden bg-white">
-              <img src={logoImg} alt="TaiaDonut Logo" className="w-full h-full object-cover" />
-            </div>
-            <div>
-              <h3 className="text-xl font-black">TaiaDonut</h3>
-              <p className="text-white/60 text-sm font-medium">Montanha/ES</p>
-            </div>
-          </div>
-          
-          <div className="text-center md:text-right">
-            <p className="text-white/80 font-medium flex items-center justify-center md:justify-end gap-2 mb-2">
-              <Heart className="w-4 h-4 text-accent fill-current" />
-              Feitos com muito amor
-            </p>
-            <a 
-              href={generateWhatsAppLink(MAIN_CTA_MESSAGE)}
-              target="_blank"
-              rel="noreferrer"
-              className="text-white hover:text-primary transition-colors font-bold inline-flex items-center gap-2"
-              data-testid="link-footer-whatsapp"
+      {/* ── FOOTER ── */}
+      <footer className="bg-foreground text-white py-14 px-4">
+        <div className="container max-w-5xl mx-auto">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+            <motion.div
+              variants={fadeLeft}
+              custom={0}
+              initial="hidden"
+              whileInView="visible"
+              viewport={viewportOpts}
+              className="flex items-center gap-4"
             >
-              <MessageCircle className="w-4 h-4" />
-              (27) 99634-0288
-            </a>
+              <div className="w-16 h-16 rounded-full overflow-hidden bg-white shadow-lg flex-shrink-0">
+                <img src={logoImg} alt="TaiaDonut Logo" className="w-full h-full object-cover" />
+              </div>
+              <div>
+                <h3 className="text-xl font-black">TaiaDonut</h3>
+                <p className="text-white/50 text-sm font-medium">Montanha/ES • Entrega na região</p>
+              </div>
+            </motion.div>
+
+            <motion.div
+              variants={fadeRight}
+              custom={0}
+              initial="hidden"
+              whileInView="visible"
+              viewport={viewportOpts}
+              className="text-center md:text-right"
+            >
+              <p className="text-white/60 font-medium flex items-center justify-center md:justify-end gap-2 mb-3 text-sm">
+                <Heart className="w-3.5 h-3.5 text-accent fill-current" />
+                Feitos com muito amor todos os dias
+              </p>
+              <motion.a
+                whileHover={{ scale: 1.05 }}
+                href={generateWhatsAppLink(MAIN_CTA_MESSAGE)}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-full font-bold text-sm transition-colors shadow-lg"
+                data-testid="link-footer-whatsapp"
+              >
+                <MessageCircle className="w-4 h-4" />
+                (27) 99634-0288
+              </motion.a>
+            </motion.div>
           </div>
+
+          <motion.div
+            variants={fadeUp}
+            custom={0.2}
+            initial="hidden"
+            whileInView="visible"
+            viewport={viewportOpts}
+            className="mt-10 pt-8 border-t border-white/10 text-center text-white/30 text-xs font-medium"
+          >
+            © 2026 TaiaDonut • Montanha/ES
+          </motion.div>
         </div>
       </footer>
     </div>
