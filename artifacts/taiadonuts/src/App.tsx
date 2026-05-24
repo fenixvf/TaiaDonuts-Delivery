@@ -6,6 +6,12 @@ import { Button } from "@/components/ui/button";
 import logoImg from "@assets/Screenshot_2026-05-24-16-32-02-893_com.instagram.android-edit_1779651416020.png";
 import box8Img from "@assets/Screenshot_2026-05-24-16-24-54-514_com.instagram.android-edit_1779651416293.jpg";
 import box12Img from "@assets/Screenshot_2026-05-24-16-25-10-951_com.instagram.android-edit_1779651416268.jpg";
+import flavorLeitNinhoImg from "@assets/1_20260524_170248_0000_1779653189582.png";
+import flavorBrigadeiroImg from "@assets/2_20260524_170249_0001_1779653236226.png";
+import flavorDoceLeiteImg from "@assets/3_20260524_170249_0002_1779653236290.png";
+import flavorMaracujaImg from "@assets/4_20260524_170249_0003_1779653236309.png";
+import flavorCocoImg from "@assets/4_20260524_165751_0003_1779653236329.png";
+import flavorNutellaImg from "@assets/5_20260524_170249_0004_1779653236348.png";
 
 const WHATSAPP_NUMBER = "5527996340288";
 
@@ -298,14 +304,37 @@ export default function App() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="bg-white rounded-3xl p-8 border border-border shadow-sm text-center"
+            className="text-center"
           >
-            <h3 className="text-xl font-bold text-foreground mb-6">Sabores Disponíveis</h3>
-            <div className="flex flex-wrap justify-center gap-3">
-              {['Leite Ninho', 'Brigadeiro', 'Doce de Leite', 'Maracujá', 'Coco', 'Nutella'].map((sabor) => (
-                <span key={sabor} className="bg-background border border-border px-4 py-2 rounded-full font-bold text-foreground/80">
-                  {sabor}
-                </span>
+            <h3 className="text-2xl font-black text-foreground mb-2">6 Sabores Irresistíveis</h3>
+            <p className="text-foreground/60 font-medium mb-8">Escolha o seu favorito — ou peça um de cada!</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+              {[
+                { name: 'Leite Ninho', img: flavorLeitNinhoImg },
+                { name: 'Brigadeiro', img: flavorBrigadeiroImg },
+                { name: 'Doce de Leite', img: flavorDoceLeiteImg },
+                { name: 'Maracujá', img: flavorMaracujaImg },
+                { name: 'Coco', img: flavorCocoImg },
+                { name: 'Nutella', img: flavorNutellaImg },
+              ].map((sabor, i) => (
+                <motion.div
+                  key={sabor.name}
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.08 }}
+                  className="flex flex-col items-center gap-2 group"
+                  data-testid={`card-sabor-${sabor.name.toLowerCase().replace(/\s/g, '-')}`}
+                >
+                  <div className="w-full aspect-square rounded-2xl overflow-hidden bg-white shadow-md border border-border/40 group-hover:shadow-lg group-hover:-translate-y-1 transition-all duration-300">
+                    <img
+                      src={sabor.img}
+                      alt={sabor.name}
+                      className="w-full h-full object-contain p-1"
+                    />
+                  </div>
+                  <span className="text-sm font-bold text-foreground/80 text-center leading-tight">{sabor.name}</span>
+                </motion.div>
               ))}
             </div>
           </motion.div>
