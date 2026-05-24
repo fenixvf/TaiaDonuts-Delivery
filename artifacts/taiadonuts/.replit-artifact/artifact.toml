@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "TaiaDonut"
+version = "1.0.0"
+id = "artifacts/taiadonuts"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 24664
+
+[services.development]
+run = "pnpm --filter @workspace/taiadonuts run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/taiadonuts", "run", "build" ]
+publicDir = "artifacts/taiadonuts/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24664"
+BASE_PATH = "/"
