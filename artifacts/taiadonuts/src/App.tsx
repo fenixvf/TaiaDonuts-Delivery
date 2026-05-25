@@ -1,6 +1,6 @@
-import React from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { MessageCircle, MapPin, Clock, Heart, ChevronRight, Star, Sparkles, Package } from "lucide-react";
+import React, { useState } from "react";
+import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
+import { MessageCircle, MapPin, Clock, Heart, ChevronRight, Star, Sparkles, Package, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import logoImg from "@assets/Screenshot_2026-05-24-16-32-02-893_com.instagram.android-edit_1779651416020.png";
@@ -18,7 +18,7 @@ const WHATSAPP_NUMBER = "5527996340288";
 const generateWhatsAppLink = (message: string) =>
   `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 
-const MAIN_CTA_MESSAGE = "Olá! Quero fazer um pedido na TaiaDonut!";
+const MAIN_CTA_MESSAGE = "Olá! Quero fazer um pedido na Taia Donuts!";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 40 },
@@ -58,6 +58,114 @@ const scaleIn = {
 
 const viewportOpts = { once: true, margin: "-80px" };
 
+/* ── Name Modal ── */
+interface NameModalProps {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: (name: string) => void;
+}
+
+function NameModal({ open, onClose, onConfirm }: NameModalProps) {
+  const [name, setName] = useState("");
+  const [touched, setTouched] = useState(false);
+
+  const trimmed = name.trim();
+  const invalid = touched && trimmed.length === 0;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setTouched(true);
+    if (trimmed.length === 0) return;
+    onConfirm(trimmed);
+    setName("");
+    setTouched(false);
+  };
+
+  const handleClose = () => {
+    setName("");
+    setTouched(false);
+    onClose();
+  };
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          key="overlay"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+          onClick={handleClose}
+        >
+          <motion.div
+            key="modal"
+            initial={{ opacity: 0, scale: 0.88, y: 24 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.88, y: 24 }}
+            transition={{ type: "spring", stiffness: 280, damping: 22 }}
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 relative"
+          >
+            <button
+              onClick={handleClose}
+              className="absolute top-4 right-4 text-foreground/30 hover:text-foreground/70 transition-colors"
+              data-testid="button-modal-close"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="text-4xl text-center mb-4 select-none">🍩</div>
+            <h2 className="text-xl font-black text-foreground text-center mb-1">
+              Qual é o seu nome?
+            </h2>
+            <p className="text-foreground/50 text-sm text-center mb-6 font-medium">
+              Para identificar seu pedido no WhatsApp
+            </p>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <input
+                  autoFocus
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  onBlur={() => setTouched(true)}
+                  placeholder="Digite seu nome..."
+                  className={`w-full px-4 py-3 rounded-xl border-2 font-semibold text-foreground placeholder:text-foreground/30 outline-none transition-colors ${
+                    invalid
+                      ? "border-red-400 bg-red-50"
+                      : "border-border focus:border-primary bg-background"
+                  }`}
+                  data-testid="input-name"
+                />
+                {invalid && (
+                  <p className="text-red-500 text-xs font-bold mt-1.5 ml-1">
+                    Por favor, digite seu nome antes de continuar.
+                  </p>
+                )}
+              </div>
+
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
+                <Button
+                  type="submit"
+                  className="w-full rounded-xl font-bold bg-green-600 hover:bg-green-700 text-white h-12 text-base shadow-md shadow-green-600/20"
+                  data-testid="button-modal-confirm"
+                >
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  Abrir WhatsApp
+                </Button>
+              </motion.div>
+            </form>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
 function SectionBadge({ children }: { children: React.ReactNode }) {
   return (
     <motion.div
@@ -82,9 +190,10 @@ interface ComboCardProps {
   orderMessage: string;
   testId: string;
   delay?: number;
+  onOrder: (msg: string) => void;
 }
 
-function ComboCard({ units, price, label, highlight = false, orderMessage, testId, delay = 0 }: ComboCardProps) {
+function ComboCard({ units, price, label, highlight = false, orderMessage, testId, delay = 0, onOrder }: ComboCardProps) {
   if (highlight) {
     return (
       <motion.div
@@ -119,7 +228,7 @@ function ComboCard({ units, price, label, highlight = false, orderMessage, testI
             <div className="mt-auto">
               <Button
                 className="w-full rounded-full font-bold bg-green-600 hover:bg-green-700 text-white h-12 text-base shadow-lg shadow-green-600/20"
-                onClick={() => window.open(generateWhatsAppLink(orderMessage), "_blank")}
+                onClick={() => onOrder(orderMessage)}
                 data-testid={testId}
               >
                 <MessageCircle className="w-4 h-4 mr-2" />
@@ -154,7 +263,7 @@ function ComboCard({ units, price, label, highlight = false, orderMessage, testI
       <div className="mt-auto">
         <Button
           className="w-full rounded-full font-bold bg-green-600 hover:bg-green-700 text-white shadow-md shadow-green-600/20"
-          onClick={() => window.open(generateWhatsAppLink(orderMessage), "_blank")}
+          onClick={() => onOrder(orderMessage)}
           data-testid={testId}
         >
           <MessageCircle className="w-4 h-4 mr-2" />
@@ -170,6 +279,20 @@ export default function App() {
   const logoY = useTransform(scrollY, [0, 400], [0, -40]);
   const logoScale = useTransform(scrollY, [0, 300], [1, 0.9]);
 
+  const [modalOpen, setModalOpen] = useState(false);
+  const [pendingMessage, setPendingMessage] = useState("");
+
+  const handleOrder = (msg: string) => {
+    setPendingMessage(msg);
+    setModalOpen(true);
+  };
+
+  const handleConfirm = (name: string) => {
+    const full = `${pendingMessage} — ${name}`;
+    window.open(generateWhatsAppLink(full), "_blank");
+    setModalOpen(false);
+  };
+
   const flavors = [
     { name: "Leite Ninho", img: flavorLeitNinhoImg, bg: "from-amber-50 to-yellow-100" },
     { name: "Brigadeiro", img: flavorBrigadeiroImg, bg: "from-amber-900/10 to-amber-800/20" },
@@ -182,15 +305,18 @@ export default function App() {
   return (
     <div className="min-h-screen bg-background overflow-x-hidden font-sans">
 
+      <NameModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onConfirm={handleConfirm}
+      />
+
       {/* ── HERO ── */}
       <header className="relative pt-16 pb-28 px-4 overflow-hidden">
-        {/* Decorative blobs */}
         <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-12 -left-12 w-72 h-72 rounded-full bg-accent/15 blur-3xl pointer-events-none" />
 
         <div className="container max-w-4xl mx-auto flex flex-col items-center text-center relative z-10">
-
-          {/* Logo */}
           <motion.div
             style={{ y: logoY, scale: logoScale }}
             initial={{ scale: 0.7, opacity: 0, rotate: -8 }}
@@ -203,11 +329,10 @@ export default function App() {
               transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
               className="w-52 h-52 md:w-64 md:h-64 rounded-full overflow-hidden border-4 border-white shadow-2xl shadow-primary/20 mx-auto"
             >
-              <img src={logoImg} alt="TaiaDonut Logo" className="w-full h-full object-cover" />
+              <img src={logoImg} alt="Taia Donuts Logo" className="w-full h-full object-cover" />
             </motion.div>
           </motion.div>
 
-          {/* Heading */}
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -226,7 +351,6 @@ export default function App() {
             Feitos com carinho, coberturas irresistíveis e aquele sabor que transforma qualquer momento em algo especial.
           </motion.p>
 
-          {/* Badges */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -251,7 +375,6 @@ export default function App() {
             ))}
           </motion.div>
 
-          {/* CTA */}
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -261,7 +384,7 @@ export default function App() {
               <Button
                 size="lg"
                 className="bg-primary hover:bg-primary/90 text-white rounded-full px-10 h-14 text-lg font-black shadow-xl shadow-primary/30"
-                onClick={() => window.open(generateWhatsAppLink(MAIN_CTA_MESSAGE), "_blank")}
+                onClick={() => handleOrder(MAIN_CTA_MESSAGE)}
                 data-testid="button-hero-cta"
               >
                 <MessageCircle className="w-5 h-5 mr-2" />
@@ -273,7 +396,7 @@ export default function App() {
         </div>
       </header>
 
-      {/* ── WAVE DIVIDER ── */}
+      {/* ── WAVE ── */}
       <div className="relative -mt-1 leading-none">
         <svg viewBox="0 0 1440 60" className="w-full fill-white" preserveAspectRatio="none">
           <path d="M0,30 C360,60 1080,0 1440,30 L1440,60 L0,60 Z" />
@@ -284,46 +407,23 @@ export default function App() {
       <section className="py-20 px-4 bg-white relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-secondary/20 blur-3xl pointer-events-none" />
         <div className="container max-w-5xl mx-auto">
-
           <div className="text-center mb-14">
             <SectionBadge>Mini Donuts Clássicos</SectionBadge>
-            <motion.h2
-              variants={fadeUp}
-              custom={0.1}
-              initial="hidden"
-              whileInView="visible"
-              viewport={viewportOpts}
-              className="text-3xl md:text-5xl font-black text-foreground mb-4"
-            >
+            <motion.h2 variants={fadeUp} custom={0.1} initial="hidden" whileInView="visible" viewport={viewportOpts} className="text-3xl md:text-5xl font-black text-foreground mb-4">
               Mini Donuts <span className="text-primary">Irresistíveis</span>
             </motion.h2>
-            <motion.p
-              variants={fadeUp}
-              custom={0.2}
-              initial="hidden"
-              whileInView="visible"
-              viewport={viewportOpts}
-              className="text-foreground/60 font-medium max-w-xl mx-auto text-lg"
-            >
+            <motion.p variants={fadeUp} custom={0.2} initial="hidden" whileInView="visible" viewport={viewportOpts} className="text-foreground/60 font-medium max-w-xl mx-auto text-lg">
               Nossa massa fofinha com coberturas clássicas que derretem na boca.
             </motion.p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
-            <ComboCard units={4} price="12" label="Perfeito pra matar a vontade" orderMessage="Olá! Quero fazer um pedido na TaiaDonut: 1 caixa de Mini Donuts Irresistíveis com 4 unidades - R$12. Meu nome é: " testId="button-order-irresistiveis-4" delay={0.1} />
-            <ComboCard units={8} price="20" label="Melhor custo-benefício" highlight orderMessage="Olá! Quero fazer um pedido na TaiaDonut: 1 caixa de Mini Donuts Irresistíveis com 8 unidades - R$20. Meu nome é: " testId="button-order-irresistiveis-8" delay={0.2} />
-            <ComboCard units={12} price="32" label="Ideal pra compartilhar" orderMessage="Olá! Quero fazer um pedido na TaiaDonut: 1 caixa de Mini Donuts Irresistíveis com 12 unidades - R$32. Meu nome é: " testId="button-order-irresistiveis-12" delay={0.3} />
+            <ComboCard units={4} price="12" label="Perfeito pra matar a vontade" orderMessage="Pedido na Taia Donuts: Mini Donuts Irresistíveis — 4 un (R$12)" testId="button-order-irresistiveis-4" delay={0.1} onOrder={handleOrder} />
+            <ComboCard units={8} price="20" label="Melhor custo-benefício" highlight orderMessage="Pedido na Taia Donuts: Mini Donuts Irresistíveis — 8 un (R$20)" testId="button-order-irresistiveis-8" delay={0.2} onOrder={handleOrder} />
+            <ComboCard units={12} price="32" label="Ideal pra compartilhar" orderMessage="Pedido na Taia Donuts: Mini Donuts Irresistíveis — 12 un (R$32)" testId="button-order-irresistiveis-12" delay={0.3} onOrder={handleOrder} />
           </div>
 
-          {/* Info strip */}
-          <motion.div
-            variants={fadeUp}
-            custom={0.4}
-            initial="hidden"
-            whileInView="visible"
-            viewport={viewportOpts}
-            className="mt-10 bg-primary/5 border border-primary/15 rounded-2xl px-6 py-4 flex flex-wrap justify-center gap-6 text-sm font-bold text-foreground/60"
-          >
+          <motion.div variants={fadeUp} custom={0.4} initial="hidden" whileInView="visible" viewport={viewportOpts} className="mt-10 bg-primary/5 border border-primary/15 rounded-2xl px-6 py-4 flex flex-wrap justify-center gap-6 text-sm font-bold text-foreground/60">
             {["Produção diária", "Fresquinhos", "Feitos com amor", "Fornada limitada por dia"].map((t) => (
               <span key={t} className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block" />
@@ -334,7 +434,7 @@ export default function App() {
         </div>
       </section>
 
-      {/* ── WAVE DIVIDER ── */}
+      {/* ── WAVE ── */}
       <div className="relative leading-none bg-white">
         <svg viewBox="0 0 1440 60" className="w-full fill-[hsl(24,57%,94%)]" preserveAspectRatio="none">
           <path d="M0,0 C360,60 1080,0 1440,60 L1440,60 L0,60 Z" />
@@ -345,46 +445,23 @@ export default function App() {
       <section className="py-20 px-4 bg-[hsl(24,57%,94%)] relative overflow-hidden">
         <div className="absolute bottom-0 left-0 w-80 h-80 rounded-full bg-accent/20 blur-3xl pointer-events-none" />
         <div className="container max-w-5xl mx-auto">
-
           <div className="text-center mb-14">
             <SectionBadge>Com recheio cremoso</SectionBadge>
-            <motion.h2
-              variants={fadeUp}
-              custom={0.1}
-              initial="hidden"
-              whileInView="visible"
-              viewport={viewportOpts}
-              className="text-3xl md:text-5xl font-black text-foreground mb-4"
-            >
+            <motion.h2 variants={fadeUp} custom={0.1} initial="hidden" whileInView="visible" viewport={viewportOpts} className="text-3xl md:text-5xl font-black text-foreground mb-4">
               Mini Donuts <span className="text-primary">Recheados que Viciam</span>
             </motion.h2>
-            <motion.p
-              variants={fadeUp}
-              custom={0.2}
-              initial="hidden"
-              whileInView="visible"
-              viewport={viewportOpts}
-              className="text-foreground/60 font-medium max-w-xl mx-auto text-lg"
-            >
+            <motion.p variants={fadeUp} custom={0.2} initial="hidden" whileInView="visible" viewport={viewportOpts} className="text-foreground/60 font-medium max-w-xl mx-auto text-lg">
               A explosão de sabor que você merece. Recheios generosos e cremosos que escorrem.
             </motion.p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center mb-16">
-            <ComboCard units={4} price="16" label="Perfeito pra experimentar" orderMessage="Olá! Quero fazer um pedido na TaiaDonut: 1 caixa de Mini Donuts Recheados com 4 unidades - R$16. Meu nome é: " testId="button-order-recheados-4" delay={0.1} />
-            <ComboCard units={8} price="28" label="Melhor custo-benefício" highlight orderMessage="Olá! Quero fazer um pedido na TaiaDonut: 1 caixa de Mini Donuts Recheados com 8 unidades - R$28. Meu nome é: " testId="button-order-recheados-8" delay={0.2} />
-            <ComboCard units={12} price="42" label="Ideal pra dividir (ou não)" orderMessage="Olá! Quero fazer um pedido na TaiaDonut: 1 caixa de Mini Donuts Recheados com 12 unidades - R$42. Meu nome é: " testId="button-order-recheados-12" delay={0.3} />
+            <ComboCard units={4} price="16" label="Perfeito pra experimentar" orderMessage="Pedido na Taia Donuts: Mini Donuts Recheados — 4 un (R$16)" testId="button-order-recheados-4" delay={0.1} onOrder={handleOrder} />
+            <ComboCard units={8} price="28" label="Melhor custo-benefício" highlight orderMessage="Pedido na Taia Donuts: Mini Donuts Recheados — 8 un (R$28)" testId="button-order-recheados-8" delay={0.2} onOrder={handleOrder} />
+            <ComboCard units={12} price="42" label="Ideal pra dividir (ou não)" orderMessage="Pedido na Taia Donuts: Mini Donuts Recheados — 12 un (R$42)" testId="button-order-recheados-12" delay={0.3} onOrder={handleOrder} />
           </div>
 
-          {/* Flavors */}
-          <motion.div
-            variants={fadeUp}
-            custom={0}
-            initial="hidden"
-            whileInView="visible"
-            viewport={viewportOpts}
-            className="text-center mb-8"
-          >
+          <motion.div variants={fadeUp} custom={0} initial="hidden" whileInView="visible" viewport={viewportOpts} className="text-center mb-8">
             <h3 className="text-2xl md:text-3xl font-black text-foreground mb-2">6 Sabores Irresistíveis</h3>
             <p className="text-foreground/50 font-medium">Escolha o seu favorito — ou peça um de cada!</p>
           </motion.div>
@@ -412,7 +489,7 @@ export default function App() {
         </div>
       </section>
 
-      {/* ── WAVE DIVIDER ── */}
+      {/* ── WAVE ── */}
       <div className="relative leading-none bg-[hsl(24,57%,94%)]">
         <svg viewBox="0 0 1440 60" className="w-full fill-white" preserveAspectRatio="none">
           <path d="M0,60 C360,0 1080,60 1440,0 L1440,60 L0,60 Z" />
@@ -422,31 +499,15 @@ export default function App() {
       {/* ── GALLERY ── */}
       <section className="py-20 px-4 bg-white">
         <div className="container max-w-5xl mx-auto">
-
           <div className="text-center mb-14">
             <SectionBadge>Feitos na hora</SectionBadge>
-            <motion.h2
-              variants={fadeUp}
-              custom={0.1}
-              initial="hidden"
-              whileInView="visible"
-              viewport={viewportOpts}
-              className="text-3xl md:text-5xl font-black text-foreground"
-            >
+            <motion.h2 variants={fadeUp} custom={0.1} initial="hidden" whileInView="visible" viewport={viewportOpts} className="text-3xl md:text-5xl font-black text-foreground">
               Fresquinhos e irresistíveis
             </motion.h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-            <motion.div
-              variants={fadeLeft}
-              custom={0}
-              initial="hidden"
-              whileInView="visible"
-              viewport={viewportOpts}
-              whileHover={{ scale: 1.02 }}
-              className="rounded-3xl overflow-hidden shadow-xl group relative aspect-square"
-            >
+            <motion.div variants={fadeLeft} custom={0} initial="hidden" whileInView="visible" viewport={viewportOpts} whileHover={{ scale: 1.02 }} className="rounded-3xl overflow-hidden shadow-xl group relative aspect-square">
               <img src={box8Img} alt="Caixa com 8 mini donuts recheados" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent flex items-end p-8">
                 <div>
@@ -459,15 +520,7 @@ export default function App() {
               </div>
             </motion.div>
 
-            <motion.div
-              variants={fadeRight}
-              custom={0.15}
-              initial="hidden"
-              whileInView="visible"
-              viewport={viewportOpts}
-              whileHover={{ scale: 1.02 }}
-              className="rounded-3xl overflow-hidden shadow-xl group relative aspect-square md:mt-12"
-            >
+            <motion.div variants={fadeRight} custom={0.15} initial="hidden" whileInView="visible" viewport={viewportOpts} whileHover={{ scale: 1.02 }} className="rounded-3xl overflow-hidden shadow-xl group relative aspect-square md:mt-12">
               <img src={box12Img} alt="Caixa com 12 mini donuts recheados" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent flex items-end p-8">
                 <div>
@@ -485,7 +538,6 @@ export default function App() {
 
       {/* ── CTA ── */}
       <section className="relative py-28 px-4 overflow-hidden bg-primary mt-12">
-        {/* animated rings */}
         {[0, 1, 2].map((i) => (
           <motion.div
             key={i}
@@ -497,18 +549,8 @@ export default function App() {
         ))}
 
         <div className="container max-w-3xl mx-auto text-center relative z-10">
-          <motion.div
-            variants={scaleIn}
-            custom={0}
-            initial="hidden"
-            whileInView="visible"
-            viewport={viewportOpts}
-          >
-            <motion.div
-              animate={{ rotate: [-2, 2, -2] }}
-              transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
-              className="text-5xl mb-6 select-none"
-            >
+          <motion.div variants={scaleIn} custom={0} initial="hidden" whileInView="visible" viewport={viewportOpts}>
+            <motion.div animate={{ rotate: [-2, 2, -2] }} transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }} className="text-5xl mb-6 select-none">
               🍩
             </motion.div>
             <h2 className="text-4xl md:text-6xl font-black text-white mb-4 drop-shadow-sm leading-tight">
@@ -522,7 +564,7 @@ export default function App() {
               <Button
                 size="lg"
                 className="bg-white text-primary hover:bg-white/95 rounded-full px-12 h-16 text-xl font-black shadow-2xl"
-                onClick={() => window.open(generateWhatsAppLink(MAIN_CTA_MESSAGE), "_blank")}
+                onClick={() => handleOrder(MAIN_CTA_MESSAGE)}
                 data-testid="button-final-cta"
               >
                 <MessageCircle className="w-6 h-6 mr-3 text-green-500" />
@@ -531,14 +573,7 @@ export default function App() {
               </Button>
             </motion.div>
 
-            <motion.p
-              variants={fadeUp}
-              custom={0.3}
-              initial="hidden"
-              whileInView="visible"
-              viewport={viewportOpts}
-              className="text-white/60 text-sm font-bold mt-6 uppercase tracking-widest"
-            >
+            <motion.p variants={fadeUp} custom={0.3} initial="hidden" whileInView="visible" viewport={viewportOpts} className="text-white/60 text-sm font-bold mt-6 uppercase tracking-widest">
               Rápido • Fácil • Delicioso
             </motion.p>
           </motion.div>
@@ -549,16 +584,9 @@ export default function App() {
       <footer className="bg-foreground text-white py-14 px-4">
         <div className="container max-w-5xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-            <motion.div
-              variants={fadeLeft}
-              custom={0}
-              initial="hidden"
-              whileInView="visible"
-              viewport={viewportOpts}
-              className="flex items-center gap-4"
-            >
+            <motion.div variants={fadeLeft} custom={0} initial="hidden" whileInView="visible" viewport={viewportOpts} className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-full overflow-hidden bg-white shadow-lg flex-shrink-0">
-                <img src={logoImg} alt="TaiaDonut Logo" className="w-full h-full object-cover" />
+                <img src={logoImg} alt="Taia Donuts Logo" className="w-full h-full object-cover" />
               </div>
               <div>
                 <h3 className="text-xl font-black">Taia Donuts</h3>
@@ -566,14 +594,7 @@ export default function App() {
               </div>
             </motion.div>
 
-            <motion.div
-              variants={fadeRight}
-              custom={0}
-              initial="hidden"
-              whileInView="visible"
-              viewport={viewportOpts}
-              className="text-center md:text-right"
-            >
+            <motion.div variants={fadeRight} custom={0} initial="hidden" whileInView="visible" viewport={viewportOpts} className="text-center md:text-right">
               <p className="text-white/60 font-medium flex items-center justify-center md:justify-end gap-2 mb-3 text-sm">
                 <Heart className="w-3.5 h-3.5 text-accent fill-current" />
                 Feitos com muito amor todos os dias
@@ -592,14 +613,7 @@ export default function App() {
             </motion.div>
           </div>
 
-          <motion.div
-            variants={fadeUp}
-            custom={0.2}
-            initial="hidden"
-            whileInView="visible"
-            viewport={viewportOpts}
-            className="mt-10 pt-8 border-t border-white/10 text-center text-white/30 text-xs font-medium"
-          >
+          <motion.div variants={fadeUp} custom={0.2} initial="hidden" whileInView="visible" viewport={viewportOpts} className="mt-10 pt-8 border-t border-white/10 text-center text-white/30 text-xs font-medium">
             © 2026 Taia Donuts • Montanha/ES
           </motion.div>
         </div>
